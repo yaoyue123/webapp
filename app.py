@@ -31,6 +31,11 @@ def about():
     return render_template('about.html')
 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+
 @app.route('/articles')
 def articles():
 
@@ -200,8 +205,15 @@ def dashboard():
         return render_template('dashboard.html', msg=msg)
     # close connection
     cur.close()
+    return render_template('dashboard.html')
 
-# Article form class
+
+@app.route('/admin_user', methods=['GET', 'POST'])
+@is_logged_in
+def admin_user():
+    cur = mysql.connection.cursor()
+
+    return render_template("admin_user.html")
 
 
 class PunchForm(Form):

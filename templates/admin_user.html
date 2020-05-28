@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<h1>管理页面<small> Welcome {{session.username}}</small></h1>
+<a class="btn btn-success" href="/punch_in">每日打卡</a>
+<hr>
+<table class="table table-striped">
+    <tr>
+        <th>ID</th>
+        <th>学号</th>
+        <th>温度</th>
+        <th>日期</th>
+        <th></th>
+        <th></th>
+    </tr>
+    {% for user in users %}
+    <tr>
+        <td>{{loop.index}}</td>
+        <td>{{user.school_num}}</td>
+        <td>{{user.temperature}}</td>
+        <td>{{user.date}}</td>
+
+        <td>
+            <form action="{{url_for('delete_article',id=user.school_num)}}" method="post">
+                <input type="hidden" name="_method" value="DELETE">
+                <input type="submit" value="Delete" class="btn btn-danger">
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
