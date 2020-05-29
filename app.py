@@ -4,6 +4,7 @@ from passlib.hash import sha256_crypt
 from functools import wraps
 from time import strftime, localtime, time
 from flask_sqlalchemy import SQLAlchemy
+import os
 
 app = Flask(__name__)
 app.debug = True
@@ -212,14 +213,27 @@ def admin_user():
 @is_logged_in
 @is_admin
 def admin_set(school_num):
-    user = User_admin.query.filter(User_admin.school_num == school_num).first()
-    if user.school_num == session['school_num']:
-        flash('不能修改自身权限', 'warning')
+    if request.method == 'POST':
+        user = User_admin.query.filter(
+            User_admin.school_num == school_num).first()
+        if user.school_num == session['school_num']:
+            flash('不能修改自身权限', 'warning')
+            return redirect(url_for('admin_user'))
+        if user.school_num == '2018302180149':
+            flash('不能修改此用户权限', 'danger')
+            return redirect(url_for('admin_user'))
+        user.rank = bool(1 - user.rank)
+        db.session.commit()
+        flash('权限已修改', 'success')
         return redirect(url_for('admin_user'))
-    user.rank = bool(1 - user.rank)
-    db.session.commit()
-    flash('权限已修改', 'success')
-    return redirect(url_for('admin_user'))
+    return render_template("admin_set.html")
+
+
+@app.route('/backup', methods=['GET', 'POST'])
+@is_logged_in
+@is_admin
+def backup():
+    return render_template("backup.html")
 
 
 class PunchForm(Form):
