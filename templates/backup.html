@@ -3,6 +3,8 @@
 {% block body %}
 <h1>文件备份<small> Welcome {{session.username}}</small></h1>
 <a class="btn btn-success" href="/dashboard">返回</a>
+<a class="btn btn-success" href="/dashboard">备份</a>
+
 <hr>
 <table class="table table-striped">
     <tr>
@@ -12,17 +14,13 @@
         <th>下载</th>
         <th>删除</th>
     </tr>
-    {% for user in users | reverse%}
+    {% for file in files | reverse%}
     <tr>
         <td>{{loop.index}}</td>
         <td>{{file.name}}</td>
         <td>{{file.date}}</td>
-        <td>
-            <form action="{{url_for('delete_data',school_num=user.school_num,date = user.date)}}" method="post">
-                <input type="hidden" name="_method" value="DELETE">
-                <input type="submit" value="删除备份" class="btn btn-danger">
-            </form>
-        </td>
+        <td>{{file.date}}</td>
+        <td>{{file.date}}</td>
     </tr>
     {% endfor %}
 </table>

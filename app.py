@@ -233,7 +233,15 @@ def admin_set(school_num):
 @is_logged_in
 @is_admin
 def backup():
-    return render_template("backup.html")
+    files = []
+    for item in list(os.listdir('backup/')):
+        tempdict = {}
+        templist = item.rstrip('.sql').split("_")
+        tempdict['name'] = item
+        tempdict['db'] = templist[0]
+        tempdict['date'] = templist[1]
+        files.append(tempdict)
+    return render_template("backup.html", files=files)
 
 
 class PunchForm(Form):
