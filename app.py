@@ -4,10 +4,10 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators,
 from passlib.hash import sha256_crypt
 from functools import wraps
 from time import strftime, localtime, time
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.debug = True
-
 
 # Config MySQL
 app.config['MYSQL_HOST'] = 'localhost'
@@ -17,9 +17,56 @@ app.config['MYSQL_DB'] = 'webapp'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 # init MYSQL
 mysql = MySQL(app)
+app.config[
+    'SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:admin123@localhost/flask'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
 
 
-#Articles = Articles()
+class user_admin(db.Model):
+    __tablename__ = 'user_admin'
+    school_num = db.Column(db.String(13), primary_key=True)
+    password = db.Column(db.Text, nullable=False)
+    rank = db.Column(db.Boolean, nullable=False)
+    name = db.Column(db.Text, nullable=False)
+    phone = db.Column(db.String(11), nullable=False)
+
+    def __init__(self, school_num, password, rank, name, phone):
+        self.school_num = school_num
+        self.password = password
+        self.rank = rank
+        self.name = name
+        self.phone = phone
+
+    def __repr__(self):
+        return '<school_num %r>' % self.school_num
+
+
+class user_data(db.Model):
+    __tablename__ = 'user_data'
+    id = db.Column(db.Integer,
+                   autoincrement=True,
+                   primary_key=True,
+                   nullable=False)
+    school_num = db.Column(db.String(13),
+                           db.ForeignKey('user_admin.school_num'),
+                           nullable=False)
+    temperature = db.Column(db.Float, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+
+    def __init__(self, school_num, password, rank, name, phone):
+        self.id = id
+        self.school_num = school_num
+        self.temperature = temperature
+        self.date = date
+
+    def __repr__(self):
+        return '<school_num %r>' % self.school_num
+
+
+db.create_all()
+
 
 @app.route('/')
 def index():
@@ -72,10 +119,12 @@ def article(id):
 class RegisterForm(Form):
     name = StringField('姓名', [validators.Length(min=1, max=8)])
     school_num = StringField('学号', [validators.Length(min=13, max=13)])
-    phone = StringField(
-        '电话', [validators.Length(min=11, max=11, message="号码格式错误")])
-    password = PasswordField('密码', [validators.DataRequired(
-    ), validators.EqualTo('confirm', message='两次密码不一致')])
+    phone = StringField('电话',
+                        [validators.Length(min=11, max=11, message="号码格式错误")])
+    password = PasswordField('密码', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='两次密码不一致')
+    ])
     confirm = PasswordField('确认密码')
 
 
@@ -92,9 +141,12 @@ def register():
         cur = mysql.connection.cursor()
 
         # 返回成功记录数
-        if cur.execute("SELECT school_num FROM user_admin WHERE school_num = %s", [school_num]) == 0:
-            cur.execute("INSERT INTO user_admin(school_num,password,rank,name,phone) VALUES(%s,%s,0,%s,%s)",
-                        (school_num, password, name, phone))
+        if cur.execute(
+                "SELECT school_num FROM user_admin WHERE school_num = %s",
+            [school_num]) == 0:
+            cur.execute(
+                "INSERT INTO user_admin(school_num,password,rank,name,phone) VALUES(%s,%s,0,%s,%s)",
+                (school_num, password, name, phone))
         else:
             flash("该账号已注册", "warning")
             return redirect(url_for('login'))
@@ -108,6 +160,7 @@ def register():
         return redirect(url_for('login'))
 
     return render_template('register.html', form=form)
+
 
 # user login
 
@@ -125,8 +178,8 @@ def login():
 
         # Get user by username
 
-        result = cur.execute(
-            "SELECT * FROM user_admin WHERE school_num = %s", [school_num])
+        result = cur.execute("SELECT * FROM user_admin WHERE school_num = %s",
+                             [school_num])
 
         if result > 0:
             # Get Stored hash
@@ -154,6 +207,7 @@ def login():
 
     return render_template('login.html')
 
+
 # check if user logged in
 
 
@@ -165,6 +219,7 @@ def is_logged_in(f):
         else:
             flash('请登录', 'danger')
             return redirect(url_for('login'))
+
     return wrap
 
 
@@ -176,7 +231,9 @@ def is_admin(f):
         else:
             flash('权限不够', 'danger')
             return redirect(url_for('dashboard'))
+
     return wrap
+
 
 # logout
 
@@ -187,6 +244,8 @@ def logout():
     session.clear()
     flash('you are now logged out ', 'success')
     return redirect(url_for('login'))
+
+
 # Dashboard
 
 
@@ -201,8 +260,8 @@ def dashboard():
         result = cur.execute("SELECT * FROM user_data WHERE 1")
         users = cur.fetchall()
     else:
-        result = cur.execute(
-            "SELECT * FROM user_data WHERE school_num = %s", [session['school_num']])
+        result = cur.execute("SELECT * FROM user_data WHERE school_num = %s",
+                             [session['school_num']])
         users = cur.fetchall()
 
     # get articles
@@ -229,8 +288,10 @@ def admin_user():
 
 
 class PunchForm(Form):
-    temperature = FloatField(
-        '温度', [validators.NumberRange(min=35.0, max=45.0, message="体温必须在%(min)d，%(max)d之间")])
+    temperature = FloatField('温度', [
+        validators.NumberRange(
+            min=35.0, max=45.0, message="体温必须在%(min)d，%(max)d之间")
+    ])
 
 
 # Add Article
@@ -248,12 +309,15 @@ def punch_in():
 
         # execute
 
-        if cur.execute("SELECT * FROM user_data WHERE school_num = %s AND date = %s", (session['school_num'], date)):
+        if cur.execute(
+                "SELECT * FROM user_data WHERE school_num = %s AND date = %s",
+            (session['school_num'], date)):
             flash('今日已打卡', 'warning')
             return redirect(url_for('dashboard'))
         else:
-            cur.execute("INSERT INTO user_data(school_num,temperature,date) VALUES(%s, %s, %s)",
-                        (session['school_num'], temperature, date))
+            cur.execute(
+                "INSERT INTO user_data(school_num,temperature,date) VALUES(%s, %s, %s)",
+                (session['school_num'], temperature, date))
 
         # commit to db
 
@@ -281,8 +345,8 @@ def edit_info(id):
     else:
         flash('权限不够', 'warning')
         return redirect(url_for('dashboard'))
-    result = cur.execute(
-        "SELECT * FROM user_admin WHERE school_num = %s", [id])
+    result = cur.execute("SELECT * FROM user_admin WHERE school_num = %s",
+                         [id])
 
     user = cur.fetchone()
 
@@ -303,7 +367,8 @@ def edit_info(id):
         # execute
 
         cur.execute(
-            "UPDATE user_admin SET name=%s, phone=%s,password = %s WHERE school_num = %s", (name, phone, password, id))
+            "UPDATE user_admin SET name=%s, phone=%s,password = %s WHERE school_num = %s",
+            (name, phone, password, id))
 
         # commit to db
 
@@ -318,6 +383,7 @@ def edit_info(id):
 
     return render_template('edit_info.html', form=form)
 
+
 # Delete article
 
 
@@ -329,8 +395,8 @@ def delete_data(school_num, date):
     cur = mysql.connection.cursor()
 
     # Execute
-    cur.execute(
-        "DELETE FROM user_data WHERE school_num = %s AND date = %s", (school_num, date))
+    cur.execute("DELETE FROM user_data WHERE school_num = %s AND date = %s",
+                (school_num, date))
 
     # Commit to DB
 
