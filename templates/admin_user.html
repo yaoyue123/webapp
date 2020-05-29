@@ -21,7 +21,7 @@
         <td>{{user.date}}</td>
 
         <td>
-            <form action="{{url_for('delete_article',id=user.school_num)}}" method="post">
+            <form action="{{url_for('delete_data',id=user.school_num)}}" method="post">
                 <input type="hidden" name="_method" value="DELETE">
                 <input type="submit" value="Delete" class="btn btn-danger">
             </form>
