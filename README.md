@@ -1,3 +1,3 @@
-# Flask-Webapplication-with-mysql
-Python Flask Web application with mysql database
-If you need any help Reach me at ## vasanth@pinesphere.com
+# 学生疫情体温登记系统
+基于flask与mysql的webapp
+武汉大学数据库大作业
