@@ -11,9 +11,11 @@
     <th>温度</th>
     <th>日期</th>
     <th>状态</th>
+    {% if session.rank == 1 %}
     <th>操作</th>
+    {% endif %}
   </tr>
-  {% for user in users %}
+  {% for user in users | reverse%}
   <tr>
     <td>{{loop.index}}</td>
     <td>{{user.school_num}}</td>
@@ -26,7 +28,7 @@
     {% endif %}
     {% if session.rank == 1 %}
     <td>
-      <form action="{{url_for('delete_article',id=user.school_num)}}" method="post">
+      <form action="{{url_for('delete_data',school_num=user.school_num,date = user.date)}}" method="post">
         <input type="hidden" name="_method" value="DELETE">
         <input type="submit" value="删除记录" class="btn btn-danger">
       </form>

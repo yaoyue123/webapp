@@ -163,8 +163,19 @@ def is_logged_in(f):
         if 'logged_in' in session:
             return f(*args, **kwargs)
         else:
-            flash('Unauthorized, please login', 'danger')
+            flash('请登录', 'danger')
             return redirect(url_for('login'))
+    return wrap
+
+
+def is_admin(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if session['rank'] == 1:
+            return f(*args, **kwargs)
+        else:
+            flash('权限不够', 'danger')
+            return redirect(url_for('dashboard'))
     return wrap
 
 # logout
@@ -210,6 +221,7 @@ def dashboard():
 
 @app.route('/admin_user', methods=['GET', 'POST'])
 @is_logged_in
+@is_admin
 def admin_user():
     cur = mysql.connection.cursor()
 
@@ -309,14 +321,16 @@ def edit_info(id):
 # Delete article
 
 
-@app.route('/delete_article/<string:id>', methods=['POST'])
+@app.route('/delete_data/<string:school_num>/<string:date>', methods=['POST'])
 @is_logged_in
-def delete_article(id):
+@is_admin
+def delete_data(school_num, date):
     # Create cursor
     cur = mysql.connection.cursor()
 
     # Execute
-    cur.execute("DELETE FROM articles WHERE id = %s", [id])
+    cur.execute(
+        "DELETE FROM user_data WHERE school_num = %s AND date = %s", (school_num, date))
 
     # Commit to DB
 
@@ -325,7 +339,7 @@ def delete_article(id):
 
     cur.close()
 
-    flash('Article Deleted  ', 'success')
+    flash('已删除', 'success')
 
     return redirect(url_for('dashboard'))
 
