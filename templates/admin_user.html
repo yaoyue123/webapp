@@ -8,24 +8,37 @@
     <tr>
         <th>ID</th>
         <th>学号</th>
-        <th>温度</th>
-        <th>日期</th>
-        <th></th>
-        <th></th>
+        <th>姓名</th>
+        <th>号码</th>
+        <th>权限</th>
+        <th>操作</th>
     </tr>
     {% for user in users %}
     <tr>
         <td>{{loop.index}}</td>
         <td>{{user.school_num}}</td>
-        <td>{{user.temperature}}</td>
-        <td>{{user.date}}</td>
-
+        <td>{{user.name}}</td>
+        <td>{{user.phone}}</td>
+        {% if user.rank == 1 %}
+        <td><span class="btn btn-primary">管理</span></td>
+        {% else %}
+        <td><span class="btn btn-info">普通 </span></td>
+        {% endif %}
+        {% if user.rank == 1 %}
         <td>
-            <form action="{{url_for('delete_data',id=user.school_num)}}" method="post">
-                <input type="hidden" name="_method" value="DELETE">
-                <input type="submit" value="Delete" class="btn btn-danger">
+            <form action="{{url_for('admin_set',school_num=user.school_num)}}" method="post">
+                <input type="hidden" name="_method" value="edit">
+                <input type="submit" value="取消管理" class="btn btn-warning">
             </form>
         </td>
+        {% else %}
+        <td>
+            <form action="{{url_for('admin_set',school_num=user.school_num)}}" method="post">
+                <input type="hidden" name="_method" value="edit">
+                <input type="submit" value="设为管理" class="btn btn-success">
+            </form>
+        </td>
+        {% endif %}
     </tr>
     {% endfor %}
 </table>

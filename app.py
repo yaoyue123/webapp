@@ -172,7 +172,7 @@ def is_admin(f):
 @is_logged_in
 def logout():
     session.clear()
-    flash('you are now logged out ', 'success')
+    flash('您已退出登录', 'success')
     return redirect(url_for('login'))
 
 
@@ -204,8 +204,22 @@ def dashboard():
 @is_logged_in
 @is_admin
 def admin_user():
+    users = User_admin.query.all()
+    return render_template("admin_user.html", users=users)
 
-    return render_template("admin_user.html")
+
+@app.route('/admin_set/<string:school_num>', methods=['GET', 'POST'])
+@is_logged_in
+@is_admin
+def admin_set(school_num):
+    user = User_admin.query.filter(User_admin.school_num == school_num).first()
+    if user.school_num == session['school_num']:
+        flash('不能修改自身权限', 'warning')
+        return redirect(url_for('admin_user'))
+    user.rank = bool(1 - user.rank)
+    db.session.commit()
+    flash('权限已修改', 'success')
+    return redirect(url_for('admin_user'))
 
 
 class PunchForm(Form):
