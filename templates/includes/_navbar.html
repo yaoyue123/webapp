@@ -19,6 +19,7 @@
       <ul class="nav navbar-nav navbar-right">
         {% if session.logged_in %}
         {% if session.rank == 1 %}
+        <li><a href="/backup">系统备份</a></li>
         <li><a href="/admin_user">管理用户</a></li>
         {% endif %}
         <li><a href="/dashboard">Dashboard</a></li>

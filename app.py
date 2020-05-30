@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
+from flask import Flask, render_template, flash, redirect, url_for, session, request, logging, send_file, send_from_directory
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators, FloatField
 from passlib.hash import sha256_crypt
 from functools import wraps
@@ -239,9 +239,60 @@ def backup():
         templist = item.rstrip('.sql').split("_")
         tempdict['name'] = item
         tempdict['db'] = templist[0]
-        tempdict['date'] = templist[1]
+        tempdict['date'] = templist[1][0:8]
         files.append(tempdict)
     return render_template("backup.html", files=files)
+
+
+@app.route('/add_backup', methods=['GET', 'POST'])
+@is_logged_in
+@is_admin
+def add_backup():
+    user = 'root'
+    pwd = 'admin123'
+    host = '127.0.0.1'
+    port = '3306'
+    db = 'webapp'
+    dirname = 'backup/'
+    filename = dirname + db + strftime("_%Y%m%d%H%M", localtime(time()))
+    #不能-p与密码之间有空格，否则会报错
+    cmd = 'mysqldump -u%s -p%s -h%s -B %s > %s.sql' % (user, pwd, host, db,
+                                                       filename)
+    os.system(cmd)
+    flash('备份成功', 'success')
+    return redirect(url_for('backup'))
+
+
+@app.route('/delete_backup/<string:filename>', methods=['GET', 'POST'])
+@is_logged_in
+@is_admin
+def delete_backup(filename):
+    if request.method == 'POST':
+        dirname = 'backup/'
+        os.remove(dirname + filename)
+        flash('文件已删除', 'danger')
+        return redirect(url_for('backup'))
+
+
+@app.route('/down_backup/<string:filename>', methods=['GET', 'POST'])
+@is_logged_in
+@is_admin
+def down_backup(filename):
+    if request.method == 'POST':
+        dirname = 'backup/'
+        return send_from_directory(dirname, filename, as_attachment=True)
+
+
+@app.route('/recover_backup/<string:filename>', methods=['GET', 'POST'])
+@is_logged_in
+@is_admin
+def recover_backup(filename):
+    if request.method == 'POST':
+        #
+        #
+        #
+        flash('回滚成功', 'success')
+        return redirect(url_for('backup'))
 
 
 class PunchForm(Form):

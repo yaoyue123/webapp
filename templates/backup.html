@@ -2,8 +2,8 @@
 
 {% block body %}
 <h1>文件备份<small> Welcome {{session.username}}</small></h1>
-<a class="btn btn-success" href="/dashboard">返回</a>
-<a class="btn btn-success" href="/dashboard">备份</a>
+<a class="btn btn-success" href="/dashboard">返回主页</a>
+<a class="btn btn-info" href="/add_backup">新建备份</a>
 
 <hr>
 <table class="table table-striped">
@@ -11,16 +11,33 @@
         <th>ID</th>
         <th>名称</th>
         <th>日期</th>
+        <th>回滚</th>
         <th>下载</th>
         <th>删除</th>
     </tr>
-    {% for file in files | reverse%}
+    {% for file in files %}
     <tr>
         <td>{{loop.index}}</td>
         <td>{{file.name}}</td>
         <td>{{file.date}}</td>
-        <td>{{file.date}}</td>
-        <td>{{file.date}}</td>
+        <td>
+            <form action="{{url_for('recover_backup',filename=file.name)}}" method="post">
+                <input type="hidden" name="_method" value="RECOVER">
+                <input type="submit" value="回滚备份" class="btn btn-info">
+            </form>
+        </td>
+        <td>
+            <form action="{{url_for('down_backup',filename=file.name)}}" method="post">
+                <input type="hidden" name="_method" value="DOWN">
+                <input type="submit" value="下载备份" class="btn btn-success">
+            </form>
+        </td>
+        <td>
+            <form action="{{url_for('delete_backup',filename=file.name)}}" method="post">
+                <input type="hidden" name="_method" value="DELETE">
+                <input type="submit" value="删除备份" class="btn btn-danger">
+            </form>
+        </td>
     </tr>
     {% endfor %}
 </table>
