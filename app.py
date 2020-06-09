@@ -69,11 +69,20 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 
+#^[\u4E00-\u9FA5]{2,4}$
 class RegisterForm(Form):
-    name = StringField('姓名', [validators.Length(min=1, max=8)])
-    school_num = StringField('学号', [validators.Length(min=13, max=13)])
-    phone = StringField('电话',
-                        [validators.Length(min=11, max=11, message="号码格式错误")])
+    name = StringField('姓名', [
+        validators.Length(min=1, max=8),
+        validators.Regexp('^[\u4E00-\u9FA5]{2,4}$', 0, '请输入中文姓名')
+    ])
+    school_num = StringField('学号', [
+        validators.Length(min=13, max=13),
+        validators.Regexp('^20(\d{11})+$', 0, '请输入正确学号')
+    ])
+    phone = StringField('电话', [
+        validators.Length(min=11, max=11, message="号码格式错误"),
+        validators.Regexp('^1[35789]\d{9}$', 0, '手机号码不合法')
+    ])
     password = PasswordField('密码', [
         validators.DataRequired(),
         validators.EqualTo('confirm', message='两次密码不一致')
