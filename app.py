@@ -1,5 +1,6 @@
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging, send_file, send_from_directory
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators, FloatField
+from wtforms.validators import Length, Regexp, DataRequired, EqualTo, NumberRange
 from passlib.hash import sha256_crypt
 from functools import wraps
 from time import strftime, localtime, time
@@ -71,22 +72,20 @@ def page_not_found(e):
 
 #^[\u4E00-\u9FA5]{2,4}$
 class RegisterForm(Form):
-    name = StringField('姓名', [
-        validators.Length(min=1, max=8),
-        validators.Regexp('^[\u4E00-\u9FA5]{2,4}$', 0, '请输入中文姓名')
-    ])
-    school_num = StringField('学号', [
-        validators.Length(min=13, max=13),
-        validators.Regexp('^20(\d{11})+$', 0, '请输入正确学号')
-    ])
+    name = StringField(
+        '姓名',
+        [Length(min=1, max=8),
+         Regexp('^[\u4E00-\u9FA5]{2,4}$', 0, '请输入中文姓名')])
+    school_num = StringField(
+        '学号', [Length(min=13, max=13),
+               Regexp('^20(\d{11})+$', 0, '请输入正确学号')])
     phone = StringField('电话', [
-        validators.Length(min=11, max=11, message="号码格式错误"),
-        validators.Regexp('^1[35789]\d{9}$', 0, '手机号码不合法')
+        Length(min=11, max=11, message="号码格式错误"),
+        Regexp('^1[35789]\d{9}$', 0, '手机号码不合法')
     ])
-    password = PasswordField('密码', [
-        validators.DataRequired(),
-        validators.EqualTo('confirm', message='两次密码不一致')
-    ])
+    password = PasswordField(
+        '密码',
+        [DataRequired(), EqualTo('confirm', message='两次密码不一致')])
     confirm = PasswordField('确认密码')
 
 
@@ -98,8 +97,6 @@ def register():
         school_num = form.school_num.data
         phone = form.phone.data
         password = sha256_crypt.encrypt(str(form.password.data))
-
-        # Create crusor
 
         user = User_admin(school_num, password, 0, name, phone)
         #用User_admin查询，不能用user，会出现永1的情况
@@ -115,9 +112,6 @@ def register():
         return redirect(url_for('login'))
 
     return render_template('register.html', form=form)
-
-
-# user login
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -297,18 +291,17 @@ def down_backup(filename):
 @is_admin
 def recover_backup(filename):
     if request.method == 'POST':
-        #
-        #
-        #
+        user = 'root'
+        pwd = 'admin123'
+        cmd = 'mysql -u%s -p%s < %s' % (user, pwd, filename)
         flash('回滚成功', 'success')
         return redirect(url_for('backup'))
 
 
 class PunchForm(Form):
-    temperature = FloatField('温度', [
-        validators.NumberRange(
-            min=35.0, max=45.0, message="体温必须在%(min)d，%(max)d之间")
-    ])
+    temperature = FloatField(
+        '温度',
+        [NumberRange(min=35.0, max=45.0, message="体温必须在%(min)d，%(max)d之间")])
 
 
 @app.route('/punch_in', methods=['GET', 'POST'])
