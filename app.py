@@ -103,7 +103,7 @@ def register():
         if User_admin.query.filter(
                 User_admin.school_num == school_num).count() > 0:
             flash("该账号已注册", "warning")
-            return redirect(url_for('login'))
+            return redirect(url_for('register'))
         else:
             db.session.add(user)
             db.session.commit()
